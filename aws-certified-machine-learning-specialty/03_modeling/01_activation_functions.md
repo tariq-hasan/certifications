@@ -1,80 +1,167 @@
-# Activation Functions
+# Activation Functions in Neural Networks
 
 ## Overview
-Activation functions determine the output of a neuron based on its inputs. They are essential for introducing non-linearity into neural networks, enabling them to learn complex patterns.
 
-## Types of Activation Functions
+Activation functions determine a neuron's output based on its input. They are **critical for introducing non-linearity**, which allows neural networks to learn complex patterns beyond simple linear mappings.
+
+Without activation functions, no matter how many layers are stacked, the network would behave like a single-layer linear model.
+
+## Categories of Activation Functions
 
 ### Linear Activation Function
-- Simply outputs whatever it receives as input (y = x)
-- **Limitations**:
-  - Cannot perform complex learning
-  - Makes multiple layers redundant
-  - Not useful for backpropagation
-  - Rarely used in practice
+
+**Definition**: `f(x) = x`
+
+**Characteristics**:
+- Output is identical to the input
+- No transformation or squashing
+
+**Limitations**:
+- Fails to introduce non-linearity
+- Multiple layers become redundant
+- Derivative is constant (1), providing no meaningful gradient dynamics during backpropagation
+- Not useful for complex learning tasks
+
+**Use case**: Occasionally in the **output layer of regression tasks**, where the target can be any real number (unbounded).
 
 ### Binary Step Function
-- Outputs 0 for negative inputs, 1 for positive inputs
-- **Limitations**:
-  - Cannot handle multiple classification (binary only)
-  - Vertical slopes cause problems with derivatives
-  - Not commonly used in modern networks
 
-### Non-Linear Activation Functions
-These enable complex mappings and effective learning:
+**Definition**: `f(x) = 1 if x ≥ 0, else 0`
 
-#### Sigmoid/Logistic Function
-- Outputs between 0 and 1
-- Smooth with well-behaved derivatives
-- **Best for**: Problems requiring multiple labels per input
-- **Limitations**: Suffers from vanishing gradient problem
+**Characteristics**:
+- Hard thresholding
+- Output is binary (0 or 1)
 
-#### Hyperbolic Tangent (TanH)
-- Outputs between -1 and 1
-- Mean centered around zero (preferred over sigmoid)
-- **Best for**: Recurrent neural networks
-- **Limitations**: Computationally expensive, vanishing gradient issues
+**Limitations**:
+- Not differentiable — problematic for backpropagation
+- Not suitable for multi-class or continuous tasks
+- No gradient information — learning stalls
 
-#### Rectified Linear Unit (ReLU)
-- f(x) = max(0, x)
-- **Advantages**:
-  - Fast computation
-  - Efficient convergence
-  - No vertical lines causing calculus problems
-- **Limitations**: "Dying ReLU problem" with negative inputs
+**Use case**: Historical significance (e.g., perceptron models), but obsolete in modern networks.
 
-#### Leaky ReLU
-- Adds small negative slope for x < 0
-- Solves the dying ReLU problem
-- Slope is manually configured
+## Non-Linear Activation Functions
 
-#### Parametric ReLU (PReLU)
-- Like Leaky ReLU but negative slope is learned through backpropagation
-- More computationally intensive
+These introduce the crucial non-linearities needed for neural networks to model complex data patterns.
 
-#### Exponential Linear Unit (ELU)
-- Uses exponential function for negative inputs
-- Smoother curves preferred by calculus
+### Sigmoid (Logistic Function)
 
-#### Swish
-- Developed by Google
-- Benefits very deep networks (40+ layers)
+**Definition**: `f(x) = 1 / (1 + e^(-x))`  
+**Range**: (0, 1)
 
-#### Maxout
-- Outputs maximum of all inputs
-- ReLU is a special case
-- Doubles parameters to train, making it expensive
+**Advantages**:
+- Smooth and differentiable
+- Useful in **binary classification** or **multi-label problems** (one output node per label)
 
-#### Softmax
-- Used in output layer for classification problems
-- Converts outputs to probabilities for each class
-- **Best for**: Single-label classification
+**Disadvantages**:
+- Output not zero-centered
+- **Vanishing gradient**: Gradients shrink at extreme values, slowing learning in deep networks
+- Saturates quickly
+
+### TanH (Hyperbolic Tangent)
+
+**Definition**: `f(x) = (e^x - e^-x) / (e^x + e^-x)`  
+**Range**: (-1, 1)
+
+**Advantages**:
+- Zero-centered output → better gradient flow
+- Preferred over sigmoid in many cases
+
+**Disadvantages**:
+- Still suffers from **vanishing gradient**
+- More computationally expensive than ReLU
+
+**Use case**: Often in **Recurrent Neural Networks (RNNs)**.
+
+### ReLU (Rectified Linear Unit)
+
+**Definition**: `f(x) = max(0, x)`
+
+**Advantages**:
+- Sparse activation (many neurons output 0)
+- Efficient and fast
+- Avoids vanishing gradient in positive region
+- Accelerates convergence
+
+**Disadvantages**:
+- **Dying ReLU problem**: Neurons stuck with output 0 for all inputs (when weights push them into the negative zone)
+
+**Use case**: **Default choice** for hidden layers in feedforward networks.
+
+### Leaky ReLU
+
+**Definition**: `f(x) = x if x > 0, else αx` (where α is a small constant like 0.01)
+
+**Advantages**:
+- Allows small gradient when x < 0
+- Solves dying ReLU problem
+
+**Disadvantages**:
+- Still uses fixed α, which may not be optimal for all data
+
+### Parametric ReLU (PReLU)
+
+**Definition**: Same as Leaky ReLU, but **α is learned** via backpropagation.
+
+**Advantages**:
+- More adaptive than Leaky ReLU
+- Can fit data better
+
+**Disadvantages**:
+- Adds parameters
+- More computationally expensive
+
+### ELU (Exponential Linear Unit)
+
+**Definition**: `f(x) = x if x ≥ 0; α(e^x - 1) if x < 0`
+
+**Advantages**:
+- Smooth curve, better for gradient-based learning
+- Produces negative outputs (helps zero-centering)
+- Reduces bias shift in training
+
+**Disadvantages**:
+- Computationally more expensive than ReLU
+
+### Swish
+
+**Definition**: `f(x) = x * sigmoid(x)`  
+Developed by Google.
+
+**Advantages**:
+- Smooth, non-monotonic
+- Helps with **very deep networks** (40+ layers)
+- Can outperform ReLU in some modern architectures
+
+### Maxout
+
+**Definition**: `f(x) = max(w₁x + b₁, w₂x + b₂)`
+
+**Advantages**:
+- Generalizes ReLU and Leaky ReLU
+- No saturation or dying neuron problem
+
+**Disadvantages**:
+- Doubles parameters per neuron → computationally expensive
+- Risk of overfitting without regularization
+
+### Softmax (for Output Layer)
+
+**Definition**: `f(x_i) = e^(x_i) / Σ e^(x_j)` for all j in class set  
+**Range**: (0, 1), with all outputs summing to 1.
+
+**Use case**:
+- Multi-class **single-label classification** problems
+- Converts raw scores (logits) into class probabilities
 
 ## Choosing the Right Activation Function
 
-1. For output layer in classification: Softmax
-2. For recurrent neural networks: TanH
-3. For most other cases: Start with ReLU
-4. If ReLU underperforms: Try Leaky ReLU → PReLU → Maxout
-5. For very deep networks (40+ layers): Consider Swish
-6. For multi-label classification: Sigmoid​​​​​​​​​​​​​​​​
+| Use Case | Suggested Activation |
+|----------|-----------------------|
+| **Hidden layers (general)** | ReLU (default), Leaky ReLU, PReLU |
+| **Recurrent Neural Networks (RNNs)** | Tanh (or ReLU in modern RNNs) |
+| **Binary classification (output layer)** | Sigmoid |
+| **Multi-class classification** | Softmax |
+| **Multi-label classification** | Sigmoid (1 per label) |
+| **Regression (output layer)** | Linear (identity) |
+| **Very deep networks (e.g. ResNets, >40 layers)** | Swish or ELU |
+| **If ReLU underperforms** | Leaky ReLU → PReLU → Maxout |
